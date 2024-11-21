@@ -35,31 +35,43 @@ const Form = ({ onAddItems }) => {
     </form>
   )
 }
-const PackingList = ({ items, onDeleteItem }) => {
+const PackingList = ({ items, onDeleteItem, onCheckboxToggle }) => {
   return (
     <div className="list">
       <ul>
         {items.map((item) =>
-          <Item item={item} key={item.id} onDeleteItem={onDeleteItem} />)}
+          <Item item={item} key={item.id} onDeleteItem={onDeleteItem} onCheckboxToggle={onCheckboxToggle} />)}
       </ul>
     </div>
   )
 }
 
-const Item = ({ item, onDeleteItem }) => {
+const Item = ({ item, onDeleteItem, onCheckboxToggle }) => {
   return (
     <li>
+      <input type='checkbox' value={item.packed} onChange={() => onCheckboxToggle(item.id)} />
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>{item.quantity} {item.description}</span>
       <button style={{ fontSize: "4.5rem", color: "red" }} onClick={() => onDeleteItem(item.id)}>&times;</button>
     </li>
   )
 }
-const Stats = () => {
-  return (
+const Stats = ({ items }) => {
+  if (!items.length) return (
     <footer className='stats'>
-      <em>👜 You have X items on your list, and you already packed X (X%)</em>
+      <em>Start adding items 🚀</em>
     </footer>
   )
+
+  const numItems = items.length;
+  const packedItems = items.filter(item => item.packed).length
+  const precentage = Math.round((packedItems / numItems) * 100)
+  return (precentage === 100 ? <footer className='stats'>
+    <em>Everything is packed and you are ready to go ✈️</em>
+  </footer> : <footer className='stats'>
+    <em>👜 You have {numItems} items on your list, and you already packed {packedItems} ({precentage}%)</em>
+  </footer>)
+
+
 }
 
 export default function App() {
@@ -72,13 +84,16 @@ export default function App() {
     setItems(items => items.filter(item => item.id !== id))
   }
 
+  const handelToggeledItem = (id) => {
+    setItems((items) => items.map(item => item.id === id ? { ...item, packed: !item.packed } : item))
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handelAddItems} />
-      <PackingList items={items} onDeleteItem={handelDeletedItem} />
-      <Stats />
+      <PackingList items={items} onDeleteItem={handelDeletedItem} onCheckboxToggle={handelToggeledItem} />
+      <Stats items={items} />
     </div>
   )
-};
-
+} 
